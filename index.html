@@ -309,6 +309,11 @@ footer p{margin:14px 0 0;color:var(--muted);font-weight:700}
               <div class="fld"><label for="last">שם משפחה</label><input id="last" name="last" autocomplete="family-name" maxlength="40" required><span class="err" id="last-err"></span></div>
             </div>
             <div class="fld">
+              <label for="phone">מספר טלפון נייד</label>
+              <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="14" placeholder="050-1234567" dir="ltr" style="text-align:right">
+              <span class="err" id="phone-err"></span>
+            </div>
+            <div class="fld">
               <label for="cls">כיתה</label>
               <select id="cls" name="cls" required><option value="">בחרו כיתה</option></select>
               <span class="err" id="cls-err"></span>
@@ -538,7 +543,7 @@ function pick(which){
   syncChoices(); clearErr(which); clearErr(other);
   closeDlg();
   $('register').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
-  setTimeout(function(){ const f = ['first','last','cls','c1','c2'].find(function(k){ return !$(k).value.trim(); }); if (f) $(f).focus({preventScroll:true}); }, 450);
+  setTimeout(function(){ const f = ['first','last','phone','cls','c1','c2'].find(function(k){ return !$(k).value.trim(); }); if (f) $(f).focus({preventScroll:true}); }, 450);
 }
 $('pick1').addEventListener('click', function(){ pick('c1'); });
 $('pick2').addEventListener('click', function(){ pick('c2'); });
@@ -572,16 +577,20 @@ function syncChoices(){
 cls.addEventListener('change', function(){ syncChoices(); clearErr('cls'); });
 $('c1').addEventListener('change', function(){ syncChoices(); clearErr('c1'); });
 $('c2').addEventListener('change', function(){ syncChoices(); clearErr('c2'); });
-['first','last'].forEach(function(k){ $(k).addEventListener('input', function(){ clearErr(k); }); });
+['first','last','phone'].forEach(function(k){ $(k).addEventListener('input', function(){ clearErr(k); }); });
 
 function setErr(k, m){ $(k).setAttribute('aria-invalid','true'); $(k + '-err').textContent = m; }
 function clearErr(k){ $(k).removeAttribute('aria-invalid'); $(k + '-err').textContent = ''; }
 function validate(){
-  const d = {first:$('first').value.trim(), last:$('last').value.trim(), cls:cls.value, c1:$('c1').value, c2:$('c2').value};
+  const d = {first:$('first').value.trim(), last:$('last').value.trim(), phone:$('phone').value.trim(), cls:cls.value, c1:$('c1').value, c2:$('c2').value};
   let first = null;
   const fail = function(k, m){ setErr(k, m); if (!first) first = k; };
   if (!d.first) fail('first','נא למלא שם פרטי');
   if (!d.last) fail('last','נא למלא שם משפחה');
+  const pd = d.phone.replace(/[^0-9]/g,'');
+  if (!pd) fail('phone','נא למלא מספר טלפון');
+  else if (!/^05[0-9]{8}$/.test(pd)) fail('phone','מספר טלפון נייד צריך להכיל 10 ספרות ולהתחיל ב-05');
+  else d.phone = pd.slice(0,3) + '-' + pd.slice(3);
   if (!d.cls) fail('cls','נא לבחור כיתה');
   if (!d.c1) fail('c1','נא לבחור הנהגה בעדיפות ראשונה');
   if (!d.c2) fail('c2','נא לבחור הנהגה בעדיפות שנייה');
@@ -627,7 +636,7 @@ function showDone(d, r, preview){
   $('done').scrollIntoView({block:'center', behavior:'auto'});
 }
 $('againBtn').addEventListener('click', function(){
-  form.reset(); syncChoices(); ['first','last','cls','c1','c2'].forEach(clearErr);
+  form.reset(); syncChoices(); ['first','last','phone','cls','c1','c2'].forEach(clearErr);
   $('done').hidden = true; form.hidden = false; $('first').focus();
 });
 
